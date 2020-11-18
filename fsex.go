@@ -29,7 +29,7 @@ func NewMountedDir(root string) fs.FS { return &MountedDir{root: root} }
 // Open implements fs.FS.
 func (md *MountedDir) Open(filename string) (fs.File, error) {
 	var fn string
-	if fn = filepath.Join(md.root, filename); fs.ValidPath(fn) {
+	if fn = filepath.Join(md.root, filename); fs.ValidPath(filename) {
 		f, err := os.Open(fn)
 		if err != nil {
 			return nil, err
@@ -37,6 +37,23 @@ func (md *MountedDir) Open(filename string) (fs.File, error) {
 		return &file{f, fn}, nil
 	}
 	return nil, &fs.PathError{Op: "open", Path: fn, Err: fs.ErrInvalid}
+}
+
+// ReadDir implements fs.ReadDirFile.
+func (md *MountedDir) ReadDir(name string) ([]fs.DirEntry, error) {
+	f, err := os.Open(md.root)
+	if err != nil {
+		return nil, err
+	}
+	fis, err := f.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+	des := make([]fs.DirEntry, 0, len(fis))
+	for _, fi := range fis {
+		des = append(des, &fileInfo{fi})
+	}
+	return des, nil
 }
 
 // file implements fs.File.
