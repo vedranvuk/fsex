@@ -88,8 +88,8 @@ func (f *file) Seek(offset int64, whence int) (int64, error) {
 func (f *file) Close() error { return f.file.Close() }
 
 // ReadDir implements fs.ReadDirFile.
-func (f *file) ReadDir(name string) ([]fs.DirEntry, error) {
-	fis, err := f.file.Readdir(-1)
+func (f *file) ReadDir(n int) ([]fs.DirEntry, error) {
+	fis, err := f.file.Readdir(n)
 	if err != nil {
 		return nil, err
 	}
