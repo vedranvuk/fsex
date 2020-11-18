@@ -39,7 +39,7 @@ func (md *MountedDir) Open(filename string) (fs.File, error) {
 	return nil, &fs.PathError{Op: "open", Path: fn, Err: fs.ErrInvalid}
 }
 
-// ReadDir implements fs.ReadDirFile.
+// ReadDir implements fs.ReadDirFS.
 func (md *MountedDir) ReadDir(name string) ([]fs.DirEntry, error) {
 	f, err := os.Open(md.root)
 	if err != nil {
@@ -81,7 +81,7 @@ func (f *file) Write(b []byte) (int, error) {
 
 // Seek could implement fs.File.Seek.
 func (f *file) Seek(offset int64, whence int) (int64, error) {
-	return f.file.Seek(offset, whence)
+	return 0, &os.PathError{Op: "seek", Path: f.path, Err: ErrOpNotSupported}
 }
 
 // Close implements fs.File.Close.
