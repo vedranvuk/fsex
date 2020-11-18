@@ -24,7 +24,7 @@ type MountedDir struct {
 }
 
 // NewMountedDir returns a new MountedDir instance.
-func NewMountedDir(root string) fs.FS { return &MountedDir{root: root} }
+func NewMountedDir(root string) fs.ReadDirFS { return &MountedDir{root: root} }
 
 // Open implements fs.FS.
 func (md *MountedDir) Open(filename string) (fs.File, error) {
