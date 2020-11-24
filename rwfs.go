@@ -6,11 +6,6 @@ package fsex
 
 import "github.com/vedranvuk/fs"
 
-// RWFS is a fs.FS that opens files with write access.
-type RWFS interface {
-	Open(name string) (RWFile, error)
-}
-
 // RWFile is a fs.File with Write and Seek methods.
 type RWFile interface {
 	fs.File
