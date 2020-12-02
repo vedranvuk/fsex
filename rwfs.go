@@ -6,8 +6,8 @@ package fsex
 
 import "github.com/vedranvuk/fs"
 
-// RWFile is a fs.File with Write and Seek methods.
-type RWFile interface {
+// ReadWriteSeekFile is a fs.File with Write and Seek methods.
+type ReadWriteSeekFile interface {
 	fs.File
 	Write([]byte) (int, error)
 	Seek(int64, int) (int64, error)
