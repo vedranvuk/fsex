@@ -7,6 +7,7 @@ package fsex
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/vedranvuk/fs" // transitional package.
@@ -18,8 +19,16 @@ type MountedDir struct {
 	root string
 }
 
-// NewMountedDir returns a new MountedDir instance.
-func NewMountedDir(root string) fs.ReadDirFS { return &MountedDir{root: root} }
+// NewMountedDir returns a new MountedDir instance as an fs.FS.
+// If an error occurs it is returned.
+func NewMountedDir(root string) (fs.FS, error) { 
+	p := &MountedDir{}
+	var err error
+	if p.root, err = filepath.Abs(root); err != nil {
+		return nil, err
+	}
+	return p, nil
+}
 
 // Open implements fs.FS.
 func (md *MountedDir) Open(filename string) (fs.File, error) {
@@ -49,6 +58,19 @@ func (md *MountedDir) ReadDir(name string) ([]fs.DirEntry, error) {
 		des = append(des, &fileInfo{fi})
 	}
 	return des, nil
+}
+
+// Glob implmenets fs.GlobFS.
+func (md *MountedDir) Glob(pattern string) (matches []string, err error) {
+	// Matches are made against absolute paths.
+	if matches, err = filepath.Glob(filepath.Join(md.root, pattern)); err != nil {
+		return nil, err
+	}
+	// Absolute path prefix to matches need to be stripped.
+	for index, match := range matches {
+		matches[index] = strings.TrimPrefix(match, md.root)[1:]
+	}
+	return
 }
 
 // file implements fs.File.
