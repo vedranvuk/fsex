@@ -155,9 +155,11 @@ func (fi *fileInfo) IsDir() bool { return fi.info.IsDir() }
 func (fi *fileInfo) Type() fs.FileMode { return fs.FileMode(fi.info.Mode()) }
 
 // Info implements fs.DirEntry.
+// It will return a copy of this info.
 func (fi *fileInfo) Info() (fs.FileInfo, error) {
-	info, err := os.Stat(fi.info.Name())
-	if err != nil {
+	var info os.FileInfo
+	var err error
+	if info, err = os.Stat(fi.name); err != nil {
 		return nil, err
 	}
 	fi.info = info
