@@ -53,8 +53,8 @@ func (md *MountedDir) Open(filename string) (fs.File, error) {
 	var f *os.File
 	var err error
 	if fn = filepath.Join(md.root, filename); fs.ValidPath(filename) {
-		if f, err = os.OpenFile(fn, os.O_RDWR, os.ModePerm); err != nil {
-			return nil, err
+		if f, err = os.Open(fn); err != nil {
+			return nil, &fs.PathError{Op: "open", Path: fn, Err: err}
 		}
 		return &file{f, fn}, nil
 	}
