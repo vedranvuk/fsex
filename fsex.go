@@ -3,3 +3,10 @@
 // license that can be found in the LICENSE file.
 
 package fsex
+
+import "errors"
+
+var (
+	// ErrFSEX is the base fsex package error.
+	ErrFSEX = errors.New("fsex")
+)

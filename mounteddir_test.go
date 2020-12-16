@@ -7,95 +7,114 @@ package fsex
 import (
 	"fmt"
 	"os"
-	"path/filepath"
+	"path"
 	"testing"
 
 	"github.com/vedranvuk/fs"
 )
 
-func cleanup() {
-	os.Chdir("..")
+func check(err error) bool {
+	if err != nil {
+		panic(err)
+	}
+	return true
+}
+
+func CreateTestFiles() map[string]bool {
+	var files = map[string]bool{
+		"rootdir1":                         true,
+		"rootdir2":                         true,
+		"rootdir1/subdir1":                 true,
+		"rootdir1/subdir2":                 true,
+		"rootdir1/subdir1/subdirfile1.ext": false,
+		"rootdir1/subdir1/subdirfile2.ext": false,
+		"rootfile1.ext":                    false,
+		"rootfile2.ext":                    false,
+	}
+	var name string
+	var isdir bool
+	var err error
+	for name, isdir = range files {
+		if isdir {
+			check(os.MkdirAll(path.Join("testdata", name), 0755))
+			continue
+		} else {
+			check(os.MkdirAll(path.Join("testdata", path.Dir(name)), 0755))
+		}
+		if _, err = os.OpenFile(path.Join("testdata", name), os.O_CREATE, 0644); check(err) {
+		}
+	}
+	return files
+}
+
+func RemoveTestData() {
 	os.RemoveAll("testdata")
 }
 
-func createDir(filename string) {
-	if err := os.MkdirAll(filename, 0755); err != nil {
-		cleanup()
-		panic(err)
-	}
-}
-func createFile(filename string) {
-	createDir(filepath.Dir(filename))
-	file, err := os.OpenFile(filename, os.O_CREATE, 0644)
-	if err != nil {
-		cleanup()
-		panic(err)
-	}
-	file.Close()
+func printDirEntry(entry fs.DirEntry) {
+	fmt.Printf(`?? DirEntry
+  Name: '%s'
+  IsDir: '%t'
+  Type: '%v'
+`,
+		entry.Name(),
+		entry.IsDir(),
+		entry.Type(),
+	)
 }
 
-func createTestData() {
-	createDir("testdata")
-	os.Chdir("testdata")
-	createFile("index.html")
-	createFile("static/css/default.css")
-	createFile("static/js/default.js")
+func printFileInfo(info fs.FileInfo) {
+	fmt.Printf(`?? FileInfo 
+  Name: '%s'
+  IsDir: '%t'
+  Mode: '%v'
+  Size: '%d'
+  Sys: '%v'
+  ModTime: '%v'
+`,
+		info.Name(),
+		info.IsDir(),
+		info.Mode(),
+		info.Size(),
+		info.Sys(),
+		info.ModTime(),
+	)
 }
 
 func TestMountedDir(t *testing.T) {
-	createTestData()
-	defer cleanup()
-	var fsys fs.FS
+	var data = CreateTestFiles()
+	defer RemoveTestData()
+
 	var err error
-	if fsys, err = NewMountedDir("."); err != nil {
+	var md fs.FS
+	if md, err = NewMountedDir("testdata"); err != nil {
 		t.Fatal(err)
 	}
+
+	var name string
+	var isdir bool
+	var entries []fs.DirEntry
+	var entry fs.DirEntry
 	var file fs.File
-	if file, err = fsys.Open("index.html"); err != nil {
-		t.Fatal(err)
-	}
-	if err = file.Close(); err != nil {
-		t.Fatal(err)
-	}
-	if file, err = fsys.Open("static/css/default.css"); err != nil {
-		t.Fatal(err)
-	}
-	if err = file.Close(); err != nil {
-		t.Fatal(err)
-	}
-	if file, err = fsys.Open("static/js/default.js"); err != nil {
-		t.Fatal(err)
-	}
-	if err = file.Close(); err != nil {
-		t.Fatal(err)
-	}
-	var infos []fs.DirEntry
-	if infos, err = fsys.(fs.ReadDirFS).ReadDir("."); err != nil {
-		t.Fatal(err)
-	}
-	var expected = map[string]bool{
-		"static":     true,
-		"index.html": true,
-	}
-	var ok bool
-	for i := 0; i < len(infos); i++ {
-		if _, ok = expected[infos[i].Name()]; !ok {
-			t.Fatal("ReadDir failed.")
+	var info fs.FileInfo
+	for name, isdir = range data {
+		if isdir {
+			fmt.Printf("{} Dir: '%s'\n", name)
+			if entries, err = md.(fs.ReadDirFS).ReadDir(name); err != nil {
+				t.Fatal(err)
+			}
+			for _, entry = range entries {
+				printDirEntry(entry)
+			}
+			continue
 		}
-		if testing.Verbose() {
-			fmt.Printf("Name: '%s', IsDir: '%t'\n", infos[i].Name(), infos[i].IsDir())
+		fmt.Printf(">> File: '%s'\n", name)
+		if file, err = md.Open(name); err != nil {
+			t.Fatal(err)
 		}
-	}
-	var matches []string
-	if matches, err = fsys.(fs.GlobFS).Glob("*/*/*.js"); err != nil {
-		t.Fatal(err)
-	}
-	if len(matches) != 1 || matches[0] != "static/js/default.js" {
-		t.Fatal("Glob failed.")
-	}
-	if testing.Verbose() {
-		for _, match := range matches {
-			fmt.Printf("Match: '%s'\n", match)
+		if info, err = file.Stat(); err != nil {
+			t.Fatal(err)
 		}
+		printFileInfo(info)
 	}
 }
