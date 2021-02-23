@@ -6,13 +6,12 @@ package fsex
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"io/fs" // transitional package.
 )
 
 var (

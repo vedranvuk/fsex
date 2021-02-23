@@ -1,6 +1,6 @@
 # fsex
 
-Package fsex implements utilities for working with `io/fs` comming in `1.16` scheduled for february 2021.
+Package fsex implements additional utilities related to `io/fs`.
 
 ## Contents
 
@@ -8,7 +8,7 @@ Package fsex implements utilities for working with `io/fs` comming in `1.16` sch
 
 ## MountedDir
 
-An FS mounted at a directory that uses `os` to implement it.
+An FS mounted at a directory that uses `os.File` to implement it.
 
 ## Status
 
