@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vedranvuk/fs" // transitional package.
+	"io/fs" // transitional package.
 )
 
 var (

@@ -10,7 +10,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/vedranvuk/fs"
+	"io/fs"
 )
 
 func check(err error) bool {

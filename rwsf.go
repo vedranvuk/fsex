@@ -4,7 +4,7 @@
 
 package fsex
 
-import "github.com/vedranvuk/fs"
+import "io/fs"
 
 // ReadWriteSeekFile is a fs.File with Write and Seek methods.
 type ReadWriteSeekFile interface {
